@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          SCHEMA="observation_schema_v1.json"
+          SCHEMA="schema/observation_schema_v1.json"
           VALIDATOR="labels_validator.py"
 
           if [[ ! -f "$SCHEMA" ]]; then
