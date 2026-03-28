@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.org/ecoin/observation_schema_v1.json",
+  "title": "ECOIN Observation Record Schema v1",
+  "description": "Schema for 5-variable observational labeling records used in the ECOIN observation pipeline.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sample_id",
+    "date",
+    "source",
+    "text",
+    "scores",
+    "rationales",
+    "confidence",
+    "notes"
+  ],
+  "properties": {
+    "sample_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique identifier for the sample."
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Collection or labeling date in YYYY-MM-DD format."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Source label such as github_issue, reddit_post, x_post, or template_example."
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Raw text sample used for labeling."
+    },
+    "scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "anxiety_intensity",
+        "solution_seeking_pressure",
+        "delegated_agency",
+        "exploratory_reduction",
+        "value_legibility_gap"
+      ],
+      "properties": {
+        "anxiety_intensity": { "$ref": "#/$defs/scoreOrNA" },
+        "solution_seeking_pressure": { "$ref": "#/$defs/scoreOrNA" },
+        "delegated_agency": { "$ref": "#/$defs/scoreOrNA" },
+        "exploratory_reduction": { "$ref": "#/$defs/scoreOrNA" },
+        "value_legibility_gap": { "$ref": "#/$defs/scoreOrNA" }
+      },
+      "description": "Observed scores for each rubric variable, using 0-3 or NA when evidence is insufficient."
+    },
+    "rationales": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "anxiety_intensity",
+        "solution_seeking_pressure",
+        "delegated_agency",
+        "exploratory_reduction",
+        "value_legibility_gap"
+      ],
+      "properties": {
+        "anxiety_intensity": { "$ref": "#/$defs/nonEmptyString" },
+        "solution_seeking_pressure": { "$ref": "#/$defs/nonEmptyString" },
+        "delegated_agency": { "$ref": "#/$defs/nonEmptyString" },
+        "exploratory_reduction": { "$ref": "#/$defs/nonEmptyString" },
+        "value_legibility_gap": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "description": "One-sentence or short textual reason for each score."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Overall confidence in the labeling decision."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional free-text note. Use an empty string if there is no note."
+    }
+  },
+  "$defs": {
+    "scoreOrNA": {
+      "description": "Either an integer score from 0 to 3 or the string NA when evidence is insufficient.",
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        {
+          "type": "string",
+          "const": "NA"
+        }
+      ]
+    },
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
