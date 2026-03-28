@@ -1,0 +1,80 @@
+name: Validate ECOIN labels
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - '**.jsonl'
+      - '**.json'
+      - '**.py'
+      - '.github/workflows/validate_labels.yml'
+  pull_request:
+    paths:
+      - '**.jsonl'
+      - '**.json'
+      - '**.py'
+      - '.github/workflows/validate_labels.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-labels:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Show Python version
+        run: python --version
+
+      - name: Validate JSONL label files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SCHEMA="observation_schema_v1.json"
+          VALIDATOR="labels_validator.py"
+
+          if [[ ! -f "$SCHEMA" ]]; then
+            echo "Schema file not found: $SCHEMA"
+            exit 2
+          fi
+
+          if [[ ! -f "$VALIDATOR" ]]; then
+            echo "Validator file not found: $VALIDATOR"
+            exit 2
+          fi
+
+          mapfile -t files < <(
+            find . -type f \( \
+              -name 'sample_labels_v1.jsonl' -o \
+              -path './data/labeled/*.jsonl' -o \
+              -path './examples/*.jsonl' -o \
+              -path './labels/*.jsonl' \
+            \) | sort
+          )
+
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "No label files found. Expected one of:"
+            echo "- ./sample_labels_v1.jsonl"
+            echo "- ./data/labeled/*.jsonl"
+            echo "- ./examples/*.jsonl"
+            echo "- ./labels/*.jsonl"
+            exit 1
+          fi
+
+          echo "Found ${#files[@]} label file(s):"
+          printf ' - %s\n' "${files[@]}"
+
+          for file in "${files[@]}"; do
+            echo ""
+            echo "Validating $file"
+            python "$VALIDATOR" --input "$file" --schema "$SCHEMA"
+          done
